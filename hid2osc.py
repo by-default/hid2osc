@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 #f.olofsson 2019
 
 # required Python libraries: pyliblo, hid, pyusb
@@ -5,7 +7,7 @@
 # note: macOS must be running this as root if the device is a keyboard
 
 import sys, argparse
-import usb.core, hid
+import usb.core
 
 from pythonosc import udp_client
 
@@ -31,29 +33,23 @@ def event_generator(handler):
 
 #--arguments
 parser= argparse.ArgumentParser()
-parser.add_argument('--vid', type= int, dest= 'vid', help= 'set HID vendor id')
-parser.add_argument('--pid', type= int, dest= 'pid', help= 'set HID product id')
+parser.add_argument('--vid', type= str, dest= 'vid', help= 'set HID vendor id')
+parser.add_argument('--pid', type= str, dest= 'pid', help= 'set HID product id')
 parser.add_argument('--ip', dest= 'ip', help= 'set OSC destination IP')
 parser.add_argument('--port', type= int, dest= 'port', help= 'set OSC destination port')
 parser.add_argument('--rate', type= int, dest= 'rate', help= 'update rate in milliseconds')
 parser.add_argument('--debug', dest= 'debug', action= 'store_true', help= 'post incoming HID data')
 
-parser.set_defaults(vid= 0)
-parser.set_defaults(pid= 0)
+parser.set_defaults(vid="0")
+parser.set_defaults(pid="0")
 parser.set_defaults(ip= '127.0.0.1')
 parser.set_defaults(port= 9001)
 parser.set_defaults(rate= 100)
 parser.set_defaults(debug= False)
 args= parser.parse_args()
 
-if args.debug:
-    print('Available HID devices:')
-    for d in hid.enumerate():
-        print('  device: %s, %s'%(d['manufacturer_string'], d['product_string']))
-        print('  vid: %s, pid: %s'%(d['vendor_id'], d['product_id']))
-
 def main():
-    dev= usb.core.find(idVendor= args.vid, idProduct= args.pid)
+    dev = usb.core.find(idVendor=int(args.vid, 16), idProduct=int(args.pid, 16))
 
     if dev is None:
         sys.exit('Could not find device %s, %s'%(args.vid, args.pid))
