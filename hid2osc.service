@@ -1,0 +1,14 @@
+[Unit]
+Description=HID keyboard to OSC bridge
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/hid2osc
+Restart=always
+RestartSec=2
+User=root
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target
+

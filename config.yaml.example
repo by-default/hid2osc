@@ -1,0 +1,5 @@
+vid: 0
+pid: 0
+debug: 1
+ip: 127.0.0.1
+port: 9000

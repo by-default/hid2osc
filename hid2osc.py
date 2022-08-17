@@ -11,6 +11,8 @@ import usb.core
 
 from pythonosc import udp_client
 
+import yaml
+
 def event_generator(handler):
     prev_set = set([0])
     while True:
@@ -32,7 +34,17 @@ def event_generator(handler):
 #--settings
 
 #--arguments
-parser= argparse.ArgumentParser()
+conf_parser = argparse.ArgumentParser()
+conf_parser.add_argument("--config", default="/etc/hid2osc/config.yaml", help="Config file")
+conf_args = conf_parser.parse_args()
+
+config = {}
+try:
+    config = yaml.load(open(conf_args.config, "r"), Loader=yaml.SafeLoader)
+except Exception as e:
+    print(e)
+
+parser = argparse.ArgumentParser()
 parser.add_argument('--vid', type= str, dest= 'vid', help= 'set HID vendor id')
 parser.add_argument('--pid', type= str, dest= 'pid', help= 'set HID product id')
 parser.add_argument('--ip', dest= 'ip', help= 'set OSC destination IP')
@@ -40,16 +52,18 @@ parser.add_argument('--port', type= int, dest= 'port', help= 'set OSC destinatio
 parser.add_argument('--rate', type= int, dest= 'rate', help= 'update rate in milliseconds')
 parser.add_argument('--debug', dest= 'debug', action= 'store_true', help= 'post incoming HID data')
 
-parser.set_defaults(vid="0")
-parser.set_defaults(pid="0")
-parser.set_defaults(ip= '127.0.0.1')
-parser.set_defaults(port= 9001)
-parser.set_defaults(rate= 100)
-parser.set_defaults(debug= False)
-args= parser.parse_args()
+parser.set_defaults(vid=config["vid"] if "vid" in config else "0")
+parser.set_defaults(pid=config["pid"] if "pid" in config else "0")
+parser.set_defaults(ip=config["ip"] if "ip" in config else "127.0.0.1")
+parser.set_defaults(port=int(config["port"]) if "port" in config else 9000)
+parser.set_defaults(rate=int(config["rate"]) if "rate" in config else 100)
+parser.set_defaults(debug=config["debug"] if "debug" in config else False)
+args = parser.parse_args()
+
+print(args)
 
 def main():
-    dev = usb.core.find(idVendor=int(args.vid, 16), idProduct=int(args.pid, 16))
+    dev = usb.core.find(idVendor=args.vid, idProduct=args.pid)
 
     if dev is None:
         sys.exit('Could not find device %s, %s'%(args.vid, args.pid))
